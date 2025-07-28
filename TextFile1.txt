@@ -1,0 +1,107 @@
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using MonoGame_Under_the_shade_of_sakura.Entities;
+using MonoGame_Under_the_shade_of_sakura.Managers;
+using MonoGame_Under_the_shade_of_sakura.Screens;
+using MonoGame_Under_the_shade_of_sakura.UI;
+using MonoGame_Under_the_shade_of_sakura.Utils;
+using System;
+
+namespace MonoGame_Under_the_shade_of_sakura
+{
+    public class Game1 : Game
+    {
+        private GraphicsDeviceManager _graphics;
+        private SpriteBatch _spriteBatch;
+
+        private GameManager gameManager;
+        private InputManager inputManager;
+        private CollisionManager collisionManager;
+        private EntityManager entityManager;
+        private LevelManager levelManager;
+
+        private Player player;
+
+        private HealthBar healthBar;
+
+        //private ScreenManager screenManager;
+        public ScreenManager screenManager { get; private set; }
+        public static Game1 Instance;
+        private SpriteBatch spriteBatch;
+
+        public Game1()
+        {
+            _graphics = new GraphicsDeviceManager(this);
+            Content.RootDirectory = "Content";
+            IsMouseVisible = true;
+            Instance = this;
+
+        }
+
+        protected override void Initialize()
+        {
+            inputManager = new InputManager();
+            gameManager = new GameManager();
+            collisionManager = new CollisionManager();
+            entityManager = new EntityManager();
+            levelManager = new LevelManager();
+
+            player = new Player();
+            healthBar = new HealthBar(100);
+
+            screenManager = new ScreenManager();
+            screenManager.ChangeScreen(new MainMenuScreen());
+            ScreenManager.Instance.ChangeScreen(new MainMenuScreen());
+
+            base.Initialize();
+        }
+
+        protected override void LoadContent()
+        {
+            _spriteBatch = new SpriteBatch(GraphicsDevice);
+
+            player.LoadContent(Content);
+            healthBar.LoadContent(GraphicsDevice);
+
+            screenManager.LoadContent(Content);
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+            ScreenManager.Instance.LoadContent(Content);
+        }
+
+        protected override void Update(GameTime gameTime)
+        {
+            inputManager.Update();
+            player.Update(gameTime, inputManager);
+            entityManager.Update(gameTime);
+            gameManager.Update(gameTime);
+
+            if (Keyboard.GetState().IsKeyDown(Keys.H))
+                healthBar.Update(player.Health - 1f);
+
+            screenManager.Update(gameTime);
+
+            base.Update(gameTime);
+        }
+
+        protected override void Draw(GameTime gameTime)
+        {
+            GraphicsDevice.Clear(Color.Black);
+
+            _spriteBatch.Begin();
+
+            player.Draw(_spriteBatch);
+            entityManager.Draw(_spriteBatch);
+            healthBar.Draw(_spriteBatch);
+
+            _spriteBatch.End();
+
+            spriteBatch.Begin();
+            ScreenManager.Instance.Draw(spriteBatch);
+            spriteBatch.End();
+
+            base.Draw(gameTime);
+        }
+    }
+
+}
